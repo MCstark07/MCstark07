@@ -1,1 +1,36 @@
+name: Generate Koi and 3D Skyline
 
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate 3D Contribution Graph
+        uses: yoshi389111/github-profile-3d-contrib@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USERNAME: ${{ github.repository_owner }}
+
+      - name: Generate Git-Koi
+        uses: yalongwastaken/git-koi@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          user_name: ${{ github.repository_owner }}
+          output_path: profile-koi.gif
+
+      - name: Commit and Push Visuals
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add profile-3d-contrib/ profile-koi.gif
+          git diff --staged --quiet || git commit -m "Update 3D skyline and git-koi"
+          git push
