@@ -1,8 +1,8 @@
-#### 00 / INDEX
+# SERENITY
 
 <table>
   <tr>
-    <td align="left" width="58%" valign="top">
+    <td align="left" width="62%" valign="top">
       <sub><b>MCSTARK07 // LOG</b></sub><br><br>
       <sub>
         first-year cs undergrad at iiit. mostly writing c++ and java, or messing around with backend systems and computer vision when i should probably be sleeping.<br><br>
@@ -11,29 +11,22 @@
         <b>current:</b> building a lunar mission browser & shipping hackathon stuff
       </sub>
     </td>
-    <td align="center" width="42%" valign="middle">
-      <img src="./sakura.gif" width="95%" alt="upload a gif named sakura.gif to your repo">
+    <td align="center" width="38%" valign="middle">
+      <sub><b>KOI POND</b></sub><br><br>
+      <img src="./koi/koi-pond.gif" width="90%" alt="koi pond">
     </td>
   </tr>
 </table>
 
 <br>
 
-#### 01 / GARDEN
+# GARDEN
 
 <table>
   <tr>
-    <td align="center" width="25%">
-      <sub><b>KOI</b></sub><br><br>
-      <img src="./koi/koi.gif" width="85%" alt="koi">
-    </td>
-    <td align="center" width="75%">
-      <sub><b>SAKURA BLOOM</b></sub><br><br>
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://sakura-garden.vercel.app/api/svg?username=MCstark07&theme=dark&animate=true&labels=false">
-        <source media="(prefers-color-scheme: light)" srcset="https://sakura-garden.vercel.app/api/svg?username=MCstark07&theme=kawaii&animate=true&labels=false">
-        <img alt="Sakura Garden" src="https://sakura-garden.vercel.app/api/svg?username=MCstark07&theme=kawaii&animate=true&labels=false" width="100%">
-      </picture>
+    <td align="center" width="100%">
+      <br>
+      <img alt="Sakura Garden" src="https://sakura-garden.vercel.app/api/svg?username=MCstark07&theme=classic&animate=true&labels=true" width="100%">
     </td>
   </tr>
 </table>
