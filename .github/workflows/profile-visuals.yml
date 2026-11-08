@@ -1,4 +1,4 @@
-name: Generate Space Koi and Connected Stem Sakura Grid
+name: Generate Space Koi and Organic Sakura Vines
 
 on:
   schedule:
@@ -21,7 +21,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           output-dir: koi
 
-      - name: Composite Koi over space.gif & Build Connected Stem Sakura Grid
+      - name: Composite Koi over space.gif & Build Organic Wavy Sakura Grid
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: ${{ github.repository_owner }}
@@ -30,7 +30,7 @@ jobs:
           convert koi/koi.gif -coalesce koi/koi-full.gif
 
           python3 - << 'EOF'
-          import os, requests
+          import os, math, requests
           from PIL import Image, ImageSequence
 
           # 1. Composite Koi directly over space.gif
@@ -43,7 +43,6 @@ jobs:
               space_im = Image.open("space.gif")
               space_frames = [f.convert("RGBA").resize((W, H), Image.Resampling.LANCZOS) for f in ImageSequence.Iterator(space_im)]
           else:
-              # Fallback dark space canvas if space.gif is not uploaded yet
               space_frames = [Image.new("RGBA", (W, H), (5, 5, 12, 255))]
 
           out_frames = []
@@ -61,7 +60,7 @@ jobs:
               disposal=2
           )
 
-          # 2. Connected Green Stem Lattice + Blooming Sakura Flowers SVG
+          # 2. Organic Wavy Vines + Sprouting Leaves + Blooming Sakura Flowers SVG
           user = os.environ["USERNAME"]
           token = os.environ["GITHUB_TOKEN"]
           q = """query($login: String!) { user(login: $login) { contributionsCollection { contributionCalendar { weeks { contributionDays { contributionCount } } } } } }"""
@@ -76,35 +75,73 @@ jobs:
           svg = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {sw} {sh}" width="100%">']
           svg.append('<rect width="100%" height="100%" rx="8" fill="#050508" stroke="#181a24" stroke-width="1"/>')
 
-          # Draw continuous horizontal and vertical green stems connecting all squares
-          x_start = pad + cell / 2
-          x_end = pad + (len(weeks) - 1) * step + cell / 2
+          # Horizontal wavy vines using quadratic Bezier curves
           for d in range(7):
               y = pad + d * step + cell / 2
-              svg.append(f'<line x1="{x_start}" y1="{y}" x2="{x_end}" y2="{y}" stroke="#2d6a4f" stroke-width="2" stroke-linecap="round"/>')
+              x0 = pad + cell / 2
+              path_d = [f"M {x0} {y}"]
+              for wi in range(len(weeks) - 1):
+                  x1 = pad + wi * step + cell / 2
+                  x2 = pad + (wi + 1) * step + cell / 2
+                  cx = (x1 + x2) / 2
+                  # Alternate wave crest up and down organically
+                  amp = 3.2 if (wi + d) % 2 == 0 else -3.2
+                  cy = y + amp
+                  path_d.append(f"Q {cx} {cy}, {x2} {y}")
+              svg.append(f'<path d="{" ".join(path_d)}" fill="none" stroke="#2d6a4f" stroke-width="1.8" stroke-linecap="round"/>')
 
+          # Vertical wavy vines connecting rows
           for wi, w in enumerate(weeks):
               days_len = len(w["contributionDays"])
-              if days_len > 0:
+              if days_len > 1:
                   x = pad + wi * step + cell / 2
-                  y_top = pad + cell / 2
-                  y_bot = pad + (days_len - 1) * step + cell / 2
-                  svg.append(f'<line x1="{x}" y1="{y_top}" x2="{x}" y2="{y_bot}" stroke="#2d6a4f" stroke-width="2" stroke-linecap="round"/>')
+                  y0 = pad + cell / 2
+                  path_v = [f"M {x} {y0}"]
+                  for di in range(days_len - 1):
+                      y1 = pad + di * step + cell / 2
+                      y2 = pad + (di + 1) * step + cell / 2
+                      cy = (y1 + y2) / 2
+                      amp = 2.8 if (wi + di) % 2 == 0 else -2.8
+                      cx = x + amp
+                      path_v.append(f"Q {cx} {cy}, {x} {y2}")
+                  svg.append(f'<path d="{" ".join(path_v)}" fill="none" stroke="#1b4332" stroke-width="1.5" stroke-linecap="round"/>')
 
-          # Draw green stem leaf nodes on empty days and blooming sakura flowers on commit days
+          # Sprouting leaves on empty nodes & 5-petal sakura blossoms on commit days
           for wi, w in enumerate(weeks):
               for di, d in enumerate(w["contributionDays"]):
                   c = d["contributionCount"]
                   x = pad + wi * step + cell / 2
                   y = pad + di * step + cell / 2
+                  # Slight organic jitter on node position so it doesn't look robotic
+                  jx = math.sin(wi * 1.7 + di * 2.3) * 1.1
+                  jy = math.cos(wi * 2.1 + di * 1.3) * 1.1
+                  nx, ny = round(x + jx, 1), round(y + jy, 1)
+
                   if c == 0:
-                      # Connected green stem node with tiny leaf bud
-                      svg.append(f'<circle cx="{x}" cy="{y}" r="2.5" fill="#40916c" stroke="#1b4332" stroke-width="1"/>')
+                      # Hash pattern so ~35% of empty vine nodes sprout organic angled leaves
+                      seed = (wi * 31 + di * 17) % 10
+                      if seed in (0, 3, 7):
+                          angle = -38 if (wi + di) % 2 == 0 else 42
+                          svg.append(f'<g transform="translate({nx},{ny}) rotate({angle})">')
+                          svg.append('<path d="M 0,0 C 2.5,-3.5 6.5,-3.5 8,0 C 6.5,3.5 2.5,3.5 0,0 Z" fill="#52b788"/>')
+                          svg.append('<line x1="0" y1="0" x2="6.5" y2="0" stroke="#1b4332" stroke-width="0.7"/>')
+                          svg.append('</g>')
+                      elif seed == 5:
+                          # Double tiny sprout leaf
+                          svg.append(f'<g transform="translate({nx},{ny})">')
+                          svg.append('<ellipse cx="-2.2" cy="-2" rx="2.6" ry="1.3" fill="#40916c" transform="rotate(-35 -2.2 -2)"/>')
+                          svg.append('<ellipse cx="2.2" cy="2" rx="2.6" ry="1.3" fill="#52b788" transform="rotate(35 2.2 2)"/>')
+                          svg.append('</g>')
+                      else:
+                          # Subtle vine node bud
+                          svg.append(f'<circle cx="{nx}" cy="{ny}" r="1.8" fill="#2d6a4f"/>')
                   else:
-                      # 5-petal blooming sakura flower right on top of the green stems
+                      # Blooming 5-petal sakura flower with green calyx leaves underneath
                       petal = "#ff2a6d" if c >= 4 else ("#ff5c8a" if c >= 2 else "#ff8fa3")
                       core = "#fff0f3" if c < 4 else "#ffccd5"
-                      svg.append(f'<g transform="translate({x},{y})">')
+                      svg.append(f'<g transform="translate({nx},{ny})">')
+                      svg.append('<ellipse cx="-3.5" cy="2.5" rx="3.2" ry="1.4" fill="#52b788" transform="rotate(-30 -3.5 2.5)"/>')
+                      svg.append('<ellipse cx="3.5" cy="-2.5" rx="3.2" ry="1.4" fill="#40916c" transform="rotate(-30 3.5 -2.5)"/>')
                       for angle in [0, 72, 144, 216, 288]:
                           svg.append(f'<ellipse cx="0" cy="-3.8" rx="2.3" ry="3.8" fill="{petal}" transform="rotate({angle})"/>')
                       svg.append(f'<circle cx="0" cy="0" r="1.8" fill="{core}"/>')
@@ -114,11 +151,11 @@ jobs:
           with open("koi/stem-sakura.svg", "w") as f:
               f.write("\n".join(svg))
           EOF
-          rm -f koi/koi-full.gif koi/koi-pond.gif koi/cyber-pond.gif koi/dark-sakura.svg
+          rm -f koi/koi-full.gif
 
       - name: Commit and Push Visuals
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff --staged --quiet || (git commit -m "Update space koi and connected green stem sakura" && git pull --rebase && git push)
+          git diff --staged --quiet || (git commit -m "Update space koi and organic wavy sakura vines" && git pull --rebase && git push)
