@@ -27,14 +27,14 @@
     <td align="center" width="100%">
       <sub><b>KOI</b></sub><br><br>
       <p align="center">
-        <img src="./koi/koi-pond.gif" width="45%" alt="koi pond">
+        <img src="./koi/cyber-pond.gif" width="45%" alt="cyber koi pond">
       </p>
     </td>
   </tr>
   <tr>
     <td align="center" width="100%">
-      <sub><b>ACTIVITY</b></sub><br><br>
-      <img alt="Contributions" src="./koi/dark-sakura.svg" width="100%">
+      <sub><b>SAKURA BLOOM</b></sub><br><br>
+      <img alt="Sakura Garden" src="./koi/dark-sakura.svg" width="100%">
     </td>
   </tr>
 </table>
