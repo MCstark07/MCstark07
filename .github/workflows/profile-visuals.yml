@@ -1,4 +1,4 @@
-name: Generate Git-Koi
+name: Generate Git-Koi Pond
 
 on:
   schedule:
@@ -21,10 +21,61 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           output-dir: koi
 
-      - name: Clean Up and Push
+      - name: Paint Full Pond Background Behind Koi
         run: |
-          rm -f koi/koi-pond.gif koi/sakura-garden.svg
+          sudo apt-get update && sudo apt-get install -y imagemagick python3-pil
+          # Unpack all GIF frames to full canvas dimensions first
+          convert koi/koi.gif -coalesce koi/koi-full.gif
+
+          python3 - << 'EOF'
+          from PIL import Image, ImageDraw, ImageSequence
+
+          im = Image.open("koi/koi-full.gif")
+          W, H = im.size
+
+          # Create full-canvas dark pond water with ripples, lily pads & petals
+          bg = Image.new("RGBA", (W, H), (13, 38, 34, 255))
+          draw = ImageDraw.Draw(bg)
+
+          for y in range(H):
+              r = int(10 + (y / H) * 8)
+              g = int(32 + (y / H) * 20)
+              b = int(34 + (y / H) * 18)
+              draw.line([(0, y), (W, y)], fill=(r, g, b, 255))
+
+          for (cx, cy, rad) in [(int(W*0.28), int(H*0.32), 26), (int(W*0.72), int(H*0.68), 34), (int(W*0.5), int(H*0.5), 48)]:
+              draw.ellipse([cx-rad, cy-rad, cx+rad, cy+rad], outline=(45, 106, 79, 95), width=1)
+              draw.ellipse([cx-rad-10, cy-rad-10, cx+rad+10, cy+rad+10], outline=(45, 106, 79, 50), width=1)
+
+          for (lx, ly, lr) in [(int(W*0.14), int(H*0.18), 16), (int(W*0.85), int(H*0.22), 13), (int(W*0.18), int(H*0.82), 14)]:
+              draw.pieslice([lx-lr, ly-lr, lx+lr, ly+lr], start=35, end=355, fill=(45, 106, 79, 230), outline=(27, 67, 50, 255))
+
+          for (px, py) in [(0.22, 0.25), (0.78, 0.30), (0.65, 0.78), (0.30, 0.72), (0.82, 0.60), (0.15, 0.52)]:
+              x, y = int(W*px), int(H*py)
+              draw.ellipse([x-3, y-2, x+3, y+2], fill=(255, 179, 193, 235))
+
+          frames = []
+          durations = []
+          for frame in ImageSequence.Iterator(im):
+              f_rgba = frame.convert("RGBA")
+              combined = Image.alpha_composite(bg, f_rgba)
+              frames.append(combined.convert("P", palette=Image.ADAPTIVE))
+              durations.append(frame.info.get("duration", 80))
+
+          frames[0].save(
+              "koi/koi-pond.gif",
+              save_all=True,
+              append_images=frames[1:],
+              duration=durations,
+              loop=0,
+              disposal=2
+          )
+          EOF
+          rm -f koi/koi-full.gif
+
+      - name: Commit and Push Visuals
+        run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff --staged --quiet || (git commit -m "Revert to clean git-koi" && git pull --rebase && git push)
+          git diff --staged --quiet || (git commit -m "Update full koi pond" && git pull --rebase && git push)
