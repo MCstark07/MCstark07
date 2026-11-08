@@ -1,4 +1,4 @@
-name: Generate Dark Koi and Grid
+name: Generate Cyberpunk Koi Pond and Neon Sakura
 
 on:
   schedule:
@@ -21,7 +21,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           output-dir: koi
 
-      - name: Build Unified Dark Pond & Grid
+      - name: Build Cyberpunk Pond & Neon Blossom Grid
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: ${{ github.repository_owner }}
@@ -33,75 +33,98 @@ jobs:
           import os, requests
           from PIL import Image, ImageDraw, ImageSequence
 
-          # 1. Midnight Pond matching the pitch-black butterfly background
           im = Image.open("koi/koi-full.gif")
-          koi_w, koi_h = im.size
-          W, H = int(koi_w * 1.6), int(koi_h * 1.1)
-          ox, oy = (W - koi_w) // 2, (H - koi_h) // 2
+          W, H = im.size
 
+          # 1. Pitch-black cyberpunk pond (#050508) matching butterfly.gif
           bg = Image.new("RGBA", (W, H), (5, 5, 8, 255))
           draw = ImageDraw.Draw(bg)
 
-          # Subtle dark cyber/chromatic ripples matching the RGB butterfly
-          ripples = [
-              (0.25, 0.35, 24, (255, 42, 109, 55)),
-              (0.75, 0.65, 30, (5, 217, 232, 50)),
-              (0.50, 0.50, 44, (120, 120, 140, 35))
-          ]
-          for (rx, ry, rad, col) in ripples:
-              cx, cy = int(W * rx), int(H * ry)
-              draw.ellipse([cx-rad, cy-rad, cx+rad, cy+rad], outline=col, width=1)
+          # Subtle dark cyber grid lines in the deep water
+          for x in range(0, W, 24):
+              draw.line([(x, 0), (x, H)], fill=(18, 20, 32, 255), width=1)
+          for y in range(0, H, 24):
+              draw.line([(0, y), (W, y)], fill=(18, 20, 32, 255), width=1)
 
-          # Minimal crimson/sakura petals on dark water
-          for (px, py) in [(0.18, 0.25), (0.82, 0.28), (0.22, 0.78), (0.78, 0.75)]:
-              x, y = int(W * px), int(H * py)
-              draw.ellipse([x-2, y-2, x+2, y+2], fill=(255, 42, 109, 200))
+          # Chromatic RGB glitch ripples (cyan & neon magenta)
+          ripples = [
+              (int(W*0.28), int(H*0.32), 26),
+              (int(W*0.72), int(H*0.68), 34),
+              (int(W*0.50), int(H*0.50), 48)
+          ]
+          for (cx, cy, rad) in ripples:
+              # Cyan outer ring + Magenta inner ring
+              draw.ellipse([cx-rad, cy-rad, cx+rad, cy+rad], outline=(0, 245, 212, 130), width=1)
+              draw.ellipse([cx-rad-9, cy-rad-9, cx+rad+9, cy+rad+9], outline=(255, 42, 109, 95), width=1)
+
+          # Neon-outlined dark cyber lily pads
+          pads = [(int(W*0.14), int(H*0.18), 16), (int(W*0.85), int(H*0.22), 13), (int(W*0.18), int(H*0.82), 14)]
+          for (lx, ly, lr) in pads:
+              draw.pieslice([lx-lr, ly-lr, lx+lr, ly+lr], start=35, end=355, fill=(10, 28, 36, 240), outline=(0, 245, 212, 220))
+
+          # Glowing neon-pink & cyan sakura petals on the water
+          petals = [
+              (0.22, 0.25, (255, 42, 109, 255)),
+              (0.78, 0.30, (0, 245, 212, 240)),
+              (0.65, 0.78, (255, 42, 109, 255)),
+              (0.30, 0.72, (255, 117, 143, 255)),
+              (0.82, 0.60, (0, 245, 212, 240)),
+              (0.15, 0.52, (255, 42, 109, 255))
+          ]
+          for (px, py, col) in petals:
+              x, y = int(W*px), int(H*py)
+              draw.ellipse([x-3, y-2, x+3, y+2], fill=col)
 
           frames, durations = [], []
           for frame in ImageSequence.Iterator(im):
-              canvas = bg.copy()
               f_rgba = frame.convert("RGBA")
-              canvas.paste(f_rgba, (ox, oy), f_rgba)
-              frames.append(canvas.convert("P", palette=Image.ADAPTIVE))
+              combined = Image.alpha_composite(bg, f_rgba)
+              frames.append(combined.convert("P", palette=Image.ADAPTIVE))
               durations.append(frame.info.get("duration", 80))
 
-          frames[0].save("koi/koi-pond.gif", save_all=True, append_images=frames[1:], duration=durations, loop=0, disposal=2)
+          # Save to a NEW filename (cyber-pond.gif) to bypass GitHub's image cache!
+          frames[0].save("koi/cyber-pond.gif", save_all=True, append_images=frames[1:], duration=durations, loop=0, disposal=2)
 
-          # 2. Matching Dark-Mode Sakura Contribution Grid
+          # 2. Dark Cyberpunk 5-Petal Blooming Sakura Grid
           user = os.environ["USERNAME"]
           token = os.environ["GITHUB_TOKEN"]
           q = """query($login: String!) { user(login: $login) { contributionsCollection { contributionCalendar { weeks { contributionDays { contributionCount } } } } } }"""
           r = requests.post("https://api.github.com/graphql", json={"query": q, "variables": {"login": user}}, headers={"Authorization": f"Bearer {token}"}).json()
           weeks = r["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"]
 
-          cell, gap, pad = 11, 3, 14
+          cell, gap, pad = 13, 3, 16
           sw = pad * 2 + len(weeks) * (cell + gap)
           sh = pad * 2 + 7 * (cell + gap)
 
           svg = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {sw} {sh}" width="100%">']
-          svg.append('<rect width="100%" height="100%" rx="6" fill="#050508"/>')
+          svg.append('<rect width="100%" height="100%" rx="8" fill="#050508" stroke="#181a24" stroke-width="1"/>')
 
           for wi, w in enumerate(weeks):
               for di, d in enumerate(w["contributionDays"]):
                   c = d["contributionCount"]
-                  x = pad + wi * (cell + gap)
-                  y = pad + di * (cell + gap)
+                  x = pad + wi * (cell + gap) + cell / 2
+                  y = pad + di * (cell + gap) + cell / 2
                   if c == 0:
-                      svg.append(f'<rect x="{x}" y="{y}" width="{cell}" height="{cell}" rx="2" fill="#12131a"/>')
+                      svg.append(f'<rect x="{x-4.5}" y="{y-4.5}" width="9" height="9" rx="2.5" fill="#12131c"/>')
                   else:
-                      col = "#7a1c3a" if c <= 2 else ("#d90452" if c <= 5 else "#ff2a6d")
-                      svg.append(f'<rect x="{x}" y="{y}" width="{cell}" height="{cell}" rx="2" fill="{col}"/>')
+                      # Real 5-petal neon sakura flowers instead of squares!
+                      petal = "#ff2a6d" if c >= 4 else ("#ff5c8a" if c >= 2 else "#b5179e")
+                      core = "#00f5d4" if c >= 4 else "#ffffff"
+                      svg.append(f'<g transform="translate({x},{y})">')
+                      for angle in [0, 72, 144, 216, 288]:
+                          svg.append(f'<ellipse cx="0" cy="-3.6" rx="2.2" ry="3.6" fill="{petal}" transform="rotate({angle})"/>')
+                      svg.append(f'<circle cx="0" cy="0" r="1.7" fill="{core}"/>')
+                      svg.append('</g>')
 
           svg.append('</svg>')
           with open("koi/dark-sakura.svg", "w") as f:
               f.write("\n".join(svg))
           EOF
-          rm -f koi/koi-full.gif
-          rm -rf dist profile-3d-contrib
+          rm -f koi/koi-full.gif koi/koi-pond.gif
 
       - name: Commit and Push Visuals
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff --staged --quiet || (git commit -m "Unify dark theme visuals" && git pull --rebase && git push)
+          git diff --staged --quiet || (git commit -m "Generate cyberpunk koi pond and neon sakura flowers" && git pull --rebase && git push)
