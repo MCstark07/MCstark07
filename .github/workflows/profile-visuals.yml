@@ -1,4 +1,4 @@
-name: Generate Git-Koi Pond
+name: Generate Dark Koi and Grid
 
 on:
   schedule:
@@ -21,61 +21,87 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           output-dir: koi
 
-      - name: Paint Full Pond Background Behind Koi
+      - name: Build Unified Dark Pond & Grid
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USERNAME: ${{ github.repository_owner }}
         run: |
-          sudo apt-get update && sudo apt-get install -y imagemagick python3-pil
-          # Unpack all GIF frames to full canvas dimensions first
+          sudo apt-get update && sudo apt-get install -y imagemagick python3-pil python3-requests
           convert koi/koi.gif -coalesce koi/koi-full.gif
 
           python3 - << 'EOF'
+          import os, requests
           from PIL import Image, ImageDraw, ImageSequence
 
+          # 1. Midnight Pond matching the pitch-black butterfly background
           im = Image.open("koi/koi-full.gif")
-          W, H = im.size
+          koi_w, koi_h = im.size
+          W, H = int(koi_w * 1.6), int(koi_h * 1.1)
+          ox, oy = (W - koi_w) // 2, (H - koi_h) // 2
 
-          # Create full-canvas dark pond water with ripples, lily pads & petals
-          bg = Image.new("RGBA", (W, H), (13, 38, 34, 255))
+          bg = Image.new("RGBA", (W, H), (5, 5, 8, 255))
           draw = ImageDraw.Draw(bg)
 
-          for y in range(H):
-              r = int(10 + (y / H) * 8)
-              g = int(32 + (y / H) * 20)
-              b = int(34 + (y / H) * 18)
-              draw.line([(0, y), (W, y)], fill=(r, g, b, 255))
+          # Subtle dark cyber/chromatic ripples matching the RGB butterfly
+          ripples = [
+              (0.25, 0.35, 24, (255, 42, 109, 55)),
+              (0.75, 0.65, 30, (5, 217, 232, 50)),
+              (0.50, 0.50, 44, (120, 120, 140, 35))
+          ]
+          for (rx, ry, rad, col) in ripples:
+              cx, cy = int(W * rx), int(H * ry)
+              draw.ellipse([cx-rad, cy-rad, cx+rad, cy+rad], outline=col, width=1)
 
-          for (cx, cy, rad) in [(int(W*0.28), int(H*0.32), 26), (int(W*0.72), int(H*0.68), 34), (int(W*0.5), int(H*0.5), 48)]:
-              draw.ellipse([cx-rad, cy-rad, cx+rad, cy+rad], outline=(45, 106, 79, 95), width=1)
-              draw.ellipse([cx-rad-10, cy-rad-10, cx+rad+10, cy+rad+10], outline=(45, 106, 79, 50), width=1)
+          # Minimal crimson/sakura petals on dark water
+          for (px, py) in [(0.18, 0.25), (0.82, 0.28), (0.22, 0.78), (0.78, 0.75)]:
+              x, y = int(W * px), int(H * py)
+              draw.ellipse([x-2, y-2, x+2, y+2], fill=(255, 42, 109, 200))
 
-          for (lx, ly, lr) in [(int(W*0.14), int(H*0.18), 16), (int(W*0.85), int(H*0.22), 13), (int(W*0.18), int(H*0.82), 14)]:
-              draw.pieslice([lx-lr, ly-lr, lx+lr, ly+lr], start=35, end=355, fill=(45, 106, 79, 230), outline=(27, 67, 50, 255))
-
-          for (px, py) in [(0.22, 0.25), (0.78, 0.30), (0.65, 0.78), (0.30, 0.72), (0.82, 0.60), (0.15, 0.52)]:
-              x, y = int(W*px), int(H*py)
-              draw.ellipse([x-3, y-2, x+3, y+2], fill=(255, 179, 193, 235))
-
-          frames = []
-          durations = []
+          frames, durations = [], []
           for frame in ImageSequence.Iterator(im):
+              canvas = bg.copy()
               f_rgba = frame.convert("RGBA")
-              combined = Image.alpha_composite(bg, f_rgba)
-              frames.append(combined.convert("P", palette=Image.ADAPTIVE))
+              canvas.paste(f_rgba, (ox, oy), f_rgba)
+              frames.append(canvas.convert("P", palette=Image.ADAPTIVE))
               durations.append(frame.info.get("duration", 80))
 
-          frames[0].save(
-              "koi/koi-pond.gif",
-              save_all=True,
-              append_images=frames[1:],
-              duration=durations,
-              loop=0,
-              disposal=2
-          )
+          frames[0].save("koi/koi-pond.gif", save_all=True, append_images=frames[1:], duration=durations, loop=0, disposal=2)
+
+          # 2. Matching Dark-Mode Sakura Contribution Grid
+          user = os.environ["USERNAME"]
+          token = os.environ["GITHUB_TOKEN"]
+          q = """query($login: String!) { user(login: $login) { contributionsCollection { contributionCalendar { weeks { contributionDays { contributionCount } } } } } }"""
+          r = requests.post("https://api.github.com/graphql", json={"query": q, "variables": {"login": user}}, headers={"Authorization": f"Bearer {token}"}).json()
+          weeks = r["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"]
+
+          cell, gap, pad = 11, 3, 14
+          sw = pad * 2 + len(weeks) * (cell + gap)
+          sh = pad * 2 + 7 * (cell + gap)
+
+          svg = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {sw} {sh}" width="100%">']
+          svg.append('<rect width="100%" height="100%" rx="6" fill="#050508"/>')
+
+          for wi, w in enumerate(weeks):
+              for di, d in enumerate(w["contributionDays"]):
+                  c = d["contributionCount"]
+                  x = pad + wi * (cell + gap)
+                  y = pad + di * (cell + gap)
+                  if c == 0:
+                      svg.append(f'<rect x="{x}" y="{y}" width="{cell}" height="{cell}" rx="2" fill="#12131a"/>')
+                  else:
+                      col = "#7a1c3a" if c <= 2 else ("#d90452" if c <= 5 else "#ff2a6d")
+                      svg.append(f'<rect x="{x}" y="{y}" width="{cell}" height="{cell}" rx="2" fill="{col}"/>')
+
+          svg.append('</svg>')
+          with open("koi/dark-sakura.svg", "w") as f:
+              f.write("\n".join(svg))
           EOF
           rm -f koi/koi-full.gif
+          rm -rf dist profile-3d-contrib
 
       - name: Commit and Push Visuals
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff --staged --quiet || (git commit -m "Update full koi pond" && git pull --rebase && git push)
+          git diff --staged --quiet || (git commit -m "Unify dark theme visuals" && git pull --rebase && git push)
