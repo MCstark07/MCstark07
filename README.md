@@ -29,14 +29,14 @@
       <img src="./city.gif" width="95%" alt="city">
     </td>
     <td align="center" width="62%">
-      <sub><b>SPACE KOI</b></sub><br><br>
-      <img src="./koi/space-koi.gif" width="55%" alt="space koi">
+      <sub><b>KOI</b></sub><br><br>
+      <img src="./koi/space-koi-v2.gif" width="55%" alt="space koi">
     </td>
   </tr>
   <tr>
     <td align="center" width="62%">
       <sub><b>SAKURA BLOOM</b></sub><br><br>
-      <img alt="Sakura Garden" src="./koi/stem-sakura.svg" width="100%">
+      <img alt="Sakura Garden" src="./koi/organic-sakura.svg" width="100%">
     </td>
   </tr>
 </table>
