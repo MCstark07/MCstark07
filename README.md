@@ -20,21 +20,21 @@
 
 <br>
 
-#### GARDEN
+#### TELEMETRY
 
 <table>
   <tr>
     <td align="center" width="100%">
-      <sub><b>KOI POND</b></sub><br><br>
+      <sub><b>KOI</b></sub><br><br>
       <p align="center">
-        <img src="./koi/koi-pond.gif" width="50%" alt="koi pond">
+        <img src="./koi/koi-pond.gif" width="45%" alt="koi pond">
       </p>
     </td>
   </tr>
   <tr>
     <td align="center" width="100%">
-      <sub><b>SAKURA BLOOM</b></sub><br><br>
-      <img alt="Sakura Garden" src="https://sakura-garden.vercel.app/api/svg?username=MCstark07&theme=kawaii&animate=true&labels=false" width="100%">
+      <sub><b>ACTIVITY</b></sub><br><br>
+      <img alt="Contributions" src="./koi/dark-sakura.svg" width="100%">
     </td>
   </tr>
 </table>
