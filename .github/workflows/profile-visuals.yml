@@ -1,4 +1,4 @@
-name: Generate Git-Koi Pond
+name: Generate Git-Koi Pond and Sakura Garden
 
 on:
   schedule:
@@ -21,25 +21,112 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           output-dir: koi
 
-      - name: Add Pond Water Background to Koi GIF
+      - name: Build Full-Size Koi Pond & Custom Sakura Garden
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USERNAME: ${{ github.repository_owner }}
         run: |
-          sudo apt-get update && sudo apt-get install -y imagemagick
-          # Get dimensions of the generated koi.gif
-          DIM=$(identify -format "%wx%h" koi/koi.gif[0])
-          # Create a tranquil pond water canvas with ripples and floating sakura petals
-          convert -size $DIM radial-gradient:'#1b4332-#081c15' \
-            -fill none -stroke '#2d6a4f' -strokewidth 1 \
-            -draw "circle 70,70 70,95 circle 180,160 180,190" \
-            -fill '#ffb3c1' -stroke none \
-            -draw "circle 45,40 45,43 circle 210,65 210,68 circle 60,195 60,198 circle 195,215 195,218" \
-            koi/pond-bg.png
-          # Layer the animated koi over the water background
-          convert koi/koi.gif -coalesce null: koi/pond-bg.png -compose DstOver -layers composite -layers optimize koi/koi-pond.gif
-          rm koi/pond-bg.png
+          sudo apt-get update && sudo apt-get install -y imagemagick python3-pil python3-requests
+
+          # 1. Coalesce koi.gif FIRST so every frame is full-canvas size
+          convert koi/koi.gif -coalesce koi/koi-full.gif
+
+          # 2. Paint a full-size tranquil pond background with lily pads, ripples & sakura petals
+          python3 - << 'EOF'
+          from PIL import Image, ImageDraw
+          im = Image.open("koi/koi-full.gif")
+          W, H = im.size
+
+          bg = Image.new("RGBA", (W, H), (13, 38, 34, 255))
+          draw = ImageDraw.Draw(bg)
+
+          # Subtle water depth gradient
+          for y in range(H):
+              r = int(12 + (y / H) * 10)
+              g = int(36 + (y / H) * 22)
+              b = int(38 + (y / H) * 20)
+              draw.line([(0, y), (W, y)], fill=(r, g, b, 255))
+
+          # Soft water ripples
+          for (cx, cy, rad) in [(int(W*0.28), int(H*0.32), 26), (int(W*0.72), int(H*0.68), 34), (int(W*0.5), int(H*0.5), 48)]:
+              draw.ellipse([cx-rad, cy-rad, cx+rad, cy+rad], outline=(45, 106, 79, 90), width=1)
+              draw.ellipse([cx-rad-10, cy-rad-10, cx+rad+10, cy+rad+10], outline=(45, 106, 79, 45), width=1)
+
+          # Lily pads in corners
+          for (lx, ly, lr) in [(int(W*0.14), int(H*0.18), 16), (int(W*0.85), int(H*0.22), 13), (int(W*0.18), int(H*0.82), 14)]:
+              draw.pieslice([lx-lr, ly-lr, lx+lr, ly+lr], start=35, end=355, fill=(45, 106, 79, 220), outline=(27, 67, 50, 255))
+
+          # Floating sakura petals on the water surface
+          petals = [(0.22, 0.25), (0.78, 0.30), (0.65, 0.78), (0.30, 0.72), (0.82, 0.60), (0.15, 0.52)]
+          for (px, py) in petals:
+              x, y = int(W*px), int(H*py)
+              draw.ellipse([x-3, y-2, x+3, y+2], fill=(255, 179, 193, 230))
+
+          bg.save("koi/pond-bg.png")
+          EOF
+
+          # 3. Composite the full-canvas koi animation over the full-size pond
+          convert koi/koi-full.gif null: koi/pond-bg.png -compose DstOver -layers composite -layers optimize koi/koi-pond.gif
+          rm -f koi/pond-bg.png koi/koi-full.gif
+
+          # 4. Generate a Clean Sakura Blossom Contribution SVG (No green boxes!)
+          python3 - << 'EOF'
+          import os, requests
+
+          user = os.environ["USERNAME"]
+          token = os.environ["GITHUB_TOKEN"]
+          query = """
+          query($login: String!) {
+            user(login: $login) {
+              contributionsCollection {
+                contributionCalendar {
+                  weeks {
+                    contributionDays {
+                      contributionCount
+                      date
+                    }
+                  }
+                }
+              }
+            }
+          }
+          """
+          r = requests.post("https://api.github.com/graphql", json={"query": query, "variables": {"login": user}}, headers={"Authorization": f"Bearer {token}"}).json()
+          weeks = r["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"]
+
+          cell, gap, pad_x, pad_y = 13, 3, 16, 16
+          width = pad_x * 2 + len(weeks) * (cell + gap)
+          height = pad_y * 2 + 7 * (cell + gap)
+
+          svg = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" width="100%">']
+          svg.append('<rect width="100%" height="100%" rx="8" fill="#fdf8f9"/>')
+
+          for w_idx, w in enumerate(weeks):
+              for d_idx, day in enumerate(w["contributionDays"]):
+                  cnt = day["contributionCount"]
+                  x = pad_x + w_idx * (cell + gap) + cell / 2
+                  y = pad_y + d_idx * (cell + gap) + cell / 2
+                  if cnt == 0:
+                      # Soft warm stone dot instead of ugly hollow green squares
+                      svg.append(f'<rect x="{x-5}" y="{y-5}" width="10" height="10" rx="3" fill="#f3e8eb"/>')
+                  else:
+                      # Blooming 5-petal sakura flower scaled by commit intensity
+                      color = "#ffb3c1" if cnt <= 2 else ("#ff758f" if cnt <= 5 else "#e63966")
+                      center = "#fff0f3" if cnt <= 2 else "#ffccd5"
+                      svg.append(f'<g transform="translate({x},{y})">')
+                      for angle in [0, 72, 144, 216, 288]:
+                          svg.append(f'<ellipse cx="0" cy="-3.4" rx="2.3" ry="3.4" fill="{color}" transform="rotate({angle})"/>')
+                      svg.append(f'<circle cx="0" cy="0" r="1.8" fill="{center}"/>')
+                      svg.append('</g>')
+
+          svg.append('</svg>')
+          with open("koi/sakura-garden.svg", "w") as f:
+              f.write("\n".join(svg))
+          EOF
 
       - name: Commit and Push Visuals
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff --staged --quiet || (git commit -m "Update koi pond" && git pull --rebase && git push)
+          git diff --staged --quiet || (git commit -m "Update full koi pond and custom sakura garden" && git pull --rebase && git push)
