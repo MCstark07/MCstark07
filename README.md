@@ -24,17 +24,19 @@
 
 <table>
   <tr>
-    <td align="center" width="100%">
+    <td rowspan="2" align="center" width="38%" valign="middle">
+      <sub><b>NIGHT CITY</b></sub><br><br>
+      <img src="./city.gif" width="95%" alt="city">
+    </td>
+    <td align="center" width="62%">
       <sub><b>KOI</b></sub><br><br>
-      <p align="center">
-        <img src="./koi/cyber-pond.gif" width="45%" alt="cyber koi pond">
-      </p>
+      <img src="./koi/space-koi.gif" width="55%" alt="space koi">
     </td>
   </tr>
   <tr>
-    <td align="center" width="100%">
+    <td align="center" width="62%">
       <sub><b>SAKURA BLOOM</b></sub><br><br>
-      <img alt="Sakura Garden" src="./koi/dark-sakura.svg" width="100%">
+      <img alt="Sakura Garden" src="./koi/stem-sakura.svg" width="100%">
     </td>
   </tr>
 </table>
