@@ -6,7 +6,7 @@
       <sub><b>MCSTARK07 // LOG</b></sub><br><br>
       <sub>
         first-year cs undergrad at iiit bhagalpur. mostly writing c++ and java, or messing around with backend systems and computer vision when i should probably be sleeping.<br><br>
-        <b>stack:</b>c, c++, java, python, kotlin, react<br>
+        <b>stack:</b> c, c++, java, python, kotlin, react<br>
         <b>exploring:</b> opencv, pytorch, app dev<br>
         <b>current:</b> building generative art and other cool stuff<br>
         <b>reach:</b> niravrabaral07@gmail.com
@@ -26,7 +26,9 @@
   <tr>
     <td align="center" width="100%">
       <sub><b>KOI POND</b></sub><br><br>
-      <img src="./koi/koi-pond.gif" width="100%" alt="koi pond">
+      <p align="center">
+        <img src="./koi/koi-pond.gif" width="50%" alt="koi pond">
+      </p>
     </td>
   </tr>
   <tr>
