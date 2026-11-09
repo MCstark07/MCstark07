@@ -640,11 +640,11 @@
 <circle cx="0" cy="0" r="1.8" fill="#ffccd5"/>
 </g>
 <g transform="translate(854.9,37.7)">
-<ellipse cx="0" cy="-3.8" rx="2.3" ry="3.8" fill="#ff8fa3" transform="rotate(0)"/>
-<ellipse cx="0" cy="-3.8" rx="2.3" ry="3.8" fill="#ff8fa3" transform="rotate(72)"/>
-<ellipse cx="0" cy="-3.8" rx="2.3" ry="3.8" fill="#ff8fa3" transform="rotate(144)"/>
-<ellipse cx="0" cy="-3.8" rx="2.3" ry="3.8" fill="#ff8fa3" transform="rotate(216)"/>
-<ellipse cx="0" cy="-3.8" rx="2.3" ry="3.8" fill="#ff8fa3" transform="rotate(288)"/>
-<circle cx="0" cy="0" r="1.8" fill="#fff0f3"/>
+<ellipse cx="0" cy="-3.8" rx="2.3" ry="3.8" fill="#ff2a6d" transform="rotate(0)"/>
+<ellipse cx="0" cy="-3.8" rx="2.3" ry="3.8" fill="#ff2a6d" transform="rotate(72)"/>
+<ellipse cx="0" cy="-3.8" rx="2.3" ry="3.8" fill="#ff2a6d" transform="rotate(144)"/>
+<ellipse cx="0" cy="-3.8" rx="2.3" ry="3.8" fill="#ff2a6d" transform="rotate(216)"/>
+<ellipse cx="0" cy="-3.8" rx="2.3" ry="3.8" fill="#ff2a6d" transform="rotate(288)"/>
+<circle cx="0" cy="0" r="1.8" fill="#ffccd5"/>
 </g>
 </svg>
