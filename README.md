@@ -29,7 +29,7 @@
       <img src="./city.gif" width="95%" alt="city">
     </td>
     <td align="center" width="62%">
-      <sub><b>KOI</b></sub><br><br>
+      <sub><b>SPACE KOI</b></sub><br><br>
       <img src="./koi/space-koi-v2.gif" width="55%" alt="space koi">
     </td>
   </tr>
