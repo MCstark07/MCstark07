@@ -20,12 +20,12 @@
 
 <br>
 
-#### TELEMETRY
+#### DREAM
 
 <table>
   <tr>
     <td rowspan="2" align="center" width="38%" valign="middle">
-      <sub><b>NIGHT CITY</b></sub><br><br>
+      <sub><b>THE NIGHT</b></sub><br><br>
       <img src="./city.gif" width="95%" alt="city">
     </td>
     <td align="center" width="62%">
