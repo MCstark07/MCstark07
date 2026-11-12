@@ -7,7 +7,7 @@
       <sub>
         first-year cs undergrad at iiit bhagalpur. mostly writing c++ and java, or messing around with backend systems and computer vision when i should probably be sleeping.<br><br>
         <b>stack:</b> c, c++, java, python, kotlin, react<br>
-        <b>exploring:</b> opencv, pytorch, app dev<br>
+        <b>exploring:</b> opencv, pytorch, app dev, generative art<br>
         <b>current:</b> building generative art and other cool stuff<br>
         <b>reach:</b> niravrabaral07@gmail.com
       </sub>
